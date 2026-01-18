@@ -1,0 +1,88 @@
+//! Typed log message for agent output streams.
+
+use json_patch::Patch;
+use serde::{Deserialize, Serialize};
+
+/// Event type names for protocol compatibility.
+pub const EV_STDOUT: &str = "stdout";
+pub const EV_STDERR: &str = "stderr";
+pub const EV_JSON_PATCH: &str = "json_patch";
+pub const EV_SESSION_ID: &str = "session_id";
+pub const EV_READY: &str = "ready";
+pub const EV_FINISHED: &str = "finished";
+
+/// Typed log message for agent output.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum LogMsg {
+    /// Standard output data.
+    Stdout(String),
+    /// Standard error data.
+    Stderr(String),
+    /// JSON patch for incremental state updates.
+    JsonPatch(Patch),
+    /// Session ID notification.
+    SessionId(String),
+    /// Agent is ready to receive input.
+    Ready,
+    /// Agent has finished.
+    Finished,
+}
+
+impl LogMsg {
+    /// Get the event name for this message type.
+    #[must_use]
+    pub const fn name(&self) -> &'static str {
+        match self {
+            Self::Stdout(_) => EV_STDOUT,
+            Self::Stderr(_) => EV_STDERR,
+            Self::JsonPatch(_) => EV_JSON_PATCH,
+            Self::SessionId(_) => EV_SESSION_ID,
+            Self::Ready => EV_READY,
+            Self::Finished => EV_FINISHED,
+        }
+    }
+
+    /// Rough size accounting for byte-budgeted history.
+    #[must_use]
+    pub fn approx_bytes(&self) -> usize {
+        const OVERHEAD: usize = 8;
+        match self {
+            Self::Stdout(s) => EV_STDOUT.len() + s.len() + OVERHEAD,
+            Self::Stderr(s) => EV_STDERR.len() + s.len() + OVERHEAD,
+            Self::JsonPatch(patch) => {
+                let json_len = serde_json::to_string(patch).map(|s| s.len()).unwrap_or(2);
+                EV_JSON_PATCH.len() + json_len + OVERHEAD
+            }
+            Self::SessionId(s) => EV_SESSION_ID.len() + s.len() + OVERHEAD,
+            Self::Ready => EV_READY.len() + OVERHEAD,
+            Self::Finished => EV_FINISHED.len() + OVERHEAD,
+        }
+    }
+
+    /// Convert to SSE event (requires `sse` feature).
+    #[cfg(feature = "sse")]
+    #[must_use]
+    pub fn to_sse_event(&self) -> axum::response::sse::Event {
+        use axum::response::sse::Event;
+
+        match self {
+            Self::Stdout(s) => Event::default().event(EV_STDOUT).data(s.clone()),
+            Self::Stderr(s) => Event::default().event(EV_STDERR).data(s.clone()),
+            Self::JsonPatch(patch) => {
+                let data = serde_json::to_string(patch).unwrap_or_else(|_| "[]".to_string());
+                Event::default().event(EV_JSON_PATCH).data(data)
+            }
+            Self::SessionId(s) => Event::default().event(EV_SESSION_ID).data(s.clone()),
+            Self::Ready => Event::default().event(EV_READY).data(""),
+            Self::Finished => Event::default().event(EV_FINISHED).data(""),
+        }
+    }
+
+    /// Convert to JSON string for WebSocket transmission.
+    ///
+    /// # Errors
+    /// Returns error if serialization fails.
+    pub fn to_json(&self) -> Result<String, serde_json::Error> {
+        serde_json::to_string(self)
+    }
+}

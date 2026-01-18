@@ -1,0 +1,43 @@
+[package]
+name = "remote-agents-transport"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Transport layer for web and TUI interfaces"
+
+[features]
+default = ["websocket"]
+websocket = ["dep:axum", "dep:tower", "dep:tower-http"]
+tui = ["dep:ratatui", "dep:crossterm"]
+
+[dependencies]
+remote-agents-core = { workspace = true }
+remote-agents-session = { workspace = true }
+
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+futures = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+tracing = { workspace = true }
+base64 = { workspace = true }
+bytes = { workspace = true }
+
+# WebSocket transport
+axum = { workspace = true, optional = true }
+tower = { workspace = true, optional = true }
+tower-http = { workspace = true, optional = true }
+
+# TUI transport
+ratatui = { workspace = true, optional = true }
+crossterm = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio-test = { workspace = true }
+
+[lints]
+workspace = true

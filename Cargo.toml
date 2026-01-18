@@ -1,0 +1,77 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/remote-agents-core",
+    "crates/remote-agents-pty",
+    "crates/remote-agents-executor",
+    "crates/remote-agents-session",
+    "crates/remote-agents-transport",
+    "examples/web-server",
+    "examples/tui-app",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/jamie/remote-agents-core"
+
+[workspace.dependencies]
+# Core async runtime
+tokio = { version = "1", features = ["full"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+futures = "0.3"
+async-trait = "0.1"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# PTY
+portable-pty = "0.9"
+
+# Web/transport
+axum = { version = "0.8", features = ["ws"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+
+# TUI
+ratatui = "0.29"
+crossterm = "0.28"
+
+# Utilities
+uuid = { version = "1", features = ["v4", "serde"] }
+base64 = "0.22"
+bytes = "1"
+dirs = "6"
+which = "7"
+shlex = "1"
+json-patch = "3"
+
+# Testing
+tokio-test = "0.4"
+
+# Internal crates
+remote-agents-core = { path = "crates/remote-agents-core" }
+remote-agents-pty = { path = "crates/remote-agents-pty" }
+remote-agents-executor = { path = "crates/remote-agents-executor" }
+remote-agents-session = { path = "crates/remote-agents-session" }
+remote-agents-transport = { path = "crates/remote-agents-transport" }
+
+[workspace.lints.rust]
+unsafe_code = "warn"
+rust_2024_compatibility = { level = "warn", priority = -1 }
+
+[workspace.lints.clippy]
+all = "warn"
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }

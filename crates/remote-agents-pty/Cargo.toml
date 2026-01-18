@@ -1,0 +1,31 @@
+[package]
+name = "remote-agents-pty"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Cross-platform PTY session management"
+
+[features]
+default = []
+
+[dependencies]
+tokio = { workspace = true }
+portable-pty = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+tracing = { workspace = true }
+futures = { workspace = true }
+dirs = { workspace = true }
+which = { workspace = true }
+shlex = { workspace = true }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = ["Win32_System_Environment"] }
+winreg = "0.55"
+
+[dev-dependencies]
+tokio-test = { workspace = true }
+
+[lints]
+workspace = true
